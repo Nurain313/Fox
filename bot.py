@@ -74,8 +74,12 @@ async def search(message: types.Message):
     # Prompt user to enter search query
     await message.answer("Enter a movie or TV show name to search for:")
 
+
+    # Get the chat_id of the user who initiated the command
+    chat_id = message.chat.id
+
     # Register handler for the user's search query
-    @dp.message_handler(lambda message: message.text)
+    @dp.message_handler(lambda message: message.chat.id == chat_id and message.text)
     async def search_handler(message: types.Message):
         query = message.text.strip()
         if not query:
@@ -86,8 +90,8 @@ async def search(message: types.Message):
         await message.answer(results)
 
     # Set the handler to only respond to the user who initiated the command
-    await dp.current_state(user=message.from_user.id).set_state("search")
-    await dp.current_state(user=message.from_user.id).update_data(regexp='🔍 Search')
+    await dp.current_state(chat=chat_id).set_state("search")
+    await dp.current_state(chat=chat_id).update_data(regexp='🔍 Search')
     await dp.register_next_step_handler(message, search_handler)
 
 async def search_movies(query):
@@ -95,6 +99,7 @@ async def search_movies(query):
     url = f'https://api.themoviedb.org/3/search/multi?api_key={api_key}&query={query}'
     response = requests.get(url)
     results = response.json().get('results', [])
+    #result = await search_movies(user_input)
 
     if len(results) == 0:
         return 'Sorry, no results found.'
@@ -102,12 +107,13 @@ async def search_movies(query):
     elif len(results) == 1:
         result = results[0]
         return result
+    
     else:
         message = "Multiple search results found:\n"
         for i, result in enumerate(results):
             title = result.get("title", result.get("name", ""))
             media_type = result.get("media_type", "")
-            return f"{i+1}. {title} ({media_type})\n"
+            message += f"{i+1}. {title} ({media_type})\n"
         message += "Please choose a result by typing /choose <number>."
         time.sleep(10)
         return message
