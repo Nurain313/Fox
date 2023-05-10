@@ -69,22 +69,25 @@ for movie in movies:
         print(f"No video found for query '{query}'")
 
     DOWNLOADS_DIR = 'downloads'
+
+    
     def download_video(youtube_link):
-        pass
-    video_title = download_video(youtube_link)
-    print(video_title)
-    def download_video(youtube_link):
+        def on_progress(stream, chunk, bytes_remaining):
+            total_size = stream.filesize
+            bytes_downloaded = total_size - bytes_remaining
+            progress = (bytes_downloaded / total_size) * 100
+            print(f'Downloading... {progress:.2f}%')
+
+        
         try:
             yt = YouTube(youtube_link)
             video = yt.streams.get_highest_resolution()
             if not os.path.exists('downloads'):
                 os.mkdir('downloads')
-            video_title = os.path.join('downloads', yt.title)
-            file_path = os.path.join('downloads', video.default_filename)
-            video.download(output_path='downloads')
+            video_title = yt.title
+            file_path = video.download(output_path='downloads', on_progress_callback=on_progress)
             print(video_title)
             print(f'Downloaded video to: {file_path}')
-            
             return file_path
             
         except Exception as e:
@@ -124,7 +127,7 @@ for movie in movies:
         post_video(video_title, caption=caption)
 
         # Delete the downloaded video file
-        os.remove(video_title)
+        #os.remove(video_title)
     else:
         print('Could not post video to Instagram.')
 
