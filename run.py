@@ -1,75 +1,51 @@
-import multiprocessing
 import subprocess
 import time
 import os 
 
 
 parent_dir = os.path.dirname(os.getcwd())
+fox_dir = os.path.join(parent_dir, 'fox')
 
 
-# Define the functions to run each script
-def run_tv_show():
-    fox_dir = os.path.join(parent_dir, 'fox')
-    tv_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
-    tv_show_file = os.path.join(tv_file_dir, 'tv_show_file')
-    py_file = os.path.join(tv_show_file, 'tv_show.py')
-    subprocess.run(["python", py_file])
-  
-  
-def run_movie():
-  #  time.sleep(5) # Wait for 5 seconds 
-    fox_dir = os.path.join(parent_dir, 'fox')
-    tv_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
-    tv_show_file = os.path.join(tv_file_dir, 'movie_file')
-    py_file = os.path.join(tv_show_file, 'movie.py')
-    subprocess.run(["python", py_file])
-
-def run_sms():
-   # time.sleep(10)  # Wait for 10 seconds
-    fox_dir = os.path.join(parent_dir, 'fox')
-    tv_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
-    tv_show_file = os.path.join(tv_file_dir, 'sms_file')
-    py_file = os.path.join(tv_show_file, 'sms.py')
-    subprocess.run(["python", py_file])
-    
-def run_fb():
-   # time.sleep(15) # wait for 15 seconds
-    fox_dir = os.path.join(parent_dir, 'fox')
-    tv_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
-    tv_show_file = os.path.join(tv_file_dir, 'fb_file')
-    py_file = os.path.join(tv_show_file, 'fb.py')
-    subprocess.run(["python", py_file])
+tv_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
+tv_show_file = os.path.join(tv_file_dir, 'tv_show_file')
 
 
-def run_ig():
-    fox_dir = os.path.join(parent_dir, 'fox')
-    tv_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
-    tv_show_file = os.path.join(tv_file_dir, 'ig_file')
-    py_file = os.path.join(tv_show_file, 'ig.py')
-    subprocess.run(["python", py_file])
+movie_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
+movie_file = os.path.join(movie_file_dir, 'movie_file')
 
+
+sms_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
+sms_file = os.path.join(sms_file_dir, 'sms_file')
+
+
+fb_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
+fb_file = os.path.join(fb_file_dir, 'fb_file')
+
+
+ig_file_dir = os.path.join(fox_dir, 'upcoming_movies_and_TV_show')
+ig_file = os.path.join(ig_file_dir, 'ig_file')
 
     
 
-# Start the processes
-if __name__ == '__main__':
-    tv_show_process = multiprocessing.Process(target=run_tv_show)
-    movie_process = multiprocessing.Process(target=run_movie)
-    sms_process = multiprocessing.Process(target=run_sms)
-    fb_process = multiprocessing.Process(target=run_fb)
-    ig_process = multiprocessing.Process(target=run_ig)
+# list of file paths to run
+file_paths = [os.path.join(tv_show_file, 'tv_show.py'), os.path.join(movie_file, 'movie.py'), os.path.join(sms_file, 'sms.py'), os.path.join(fb_file, 'fb.py'), os.path.join(ig_file, 'ig.py')]
 
-    tv_show_process.start()
-    movie_process.start()
-    sms_process.start()
-    fb_process.start()
-    ig_process.start()
+# create a list of subprocesses
+procs = []
+for file_path in file_paths:
+    # get the directory of the file
+    file_dir = os.path.dirname(file_path)
+    # create the subprocess
+    proc = subprocess.Popen(['python', file_path], cwd=file_dir)
+    procs.append(proc)
+    # wait for 50 seconds before running the next file
+    time.sleep(50)
 
-    # Wait for all processes to finish
-    tv_show_process.join()
-    movie_process.join()
-    sms_process.join()
-    fb_process.join()
-    ig_process.join()
+# wait for all subprocesses to complete
+for proc in procs:
+    proc.wait()
+    time.sleep(5)
 
-print ("All processes complete")
+print ("updates will run again in 24 hours time")
+time.sleep(24*60*60)

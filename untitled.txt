@@ -1,0 +1,117 @@
+Here's a summary of the features of the 10 fox movies Telegram bot:
+
+1. 🔎 : Users can search for movies 🎥 and TV 📺 shows and get information about them, including plot summaries, cast information, and ⭐ratings.
+
+2. Recommendations🔖: Users can receive personalized recommendations based on their viewing history📲⏱️ and preferences.
+
+3. Trailer📽️ and Streaming🎞️ Availability: Users can watch trailers for movies and TV shows and find out where they are available to watch, including streaming service availability and rental options.
+
+4. Upcoming Movies 🎥 and TV 📺 Shows: The bot 🤖 provides information about both upcoming releases and those that have already been released.
+
+5. Watch list 📃 : Users can save and organize a watchlist of movies and TV shows they want to watch and receive notifications when new episodes of a favorite show become available.
+
+6. Natural Language Input👻🧠: The bot is able to understand natural language input.
+
+7. Integration with Streaming  Services: Users can connect  their streaming service accounts to the bot and get recommendations based on their viewing history.
+
+8. Social Features🤳: Users can share their watchlists with friends or join groups with similar viewing interests, as well as see ratings and reviews from other users.
+
+9. Advanced search 🔎 : Users can search for movies and TV shows based on a variety of criteria, such as genre, actor, director, or year of release.
+
+10. Integration with voice ➿ Assistants🗣️🫣: Users can interact with the bot through voice commands using popular voice assistants such as Amazon Alexa or Google Assistant.
+
+11. Multi-Language Support🧠🫢: The bot is available in multiple languages to cater to a global audience.
+
+12. 💯 Contextual Responses: The bot is able to understand the context of user requests, allowing it to provide more accurate and relevant responses.
+
+Overall😱, these features make the bot a comprehensive and convenient tool for users to find and organize their favorite movies 🎥 and TV 📺 shows. 
+
+
+
+
+
+
+import rasa_nlu
+from rasa_nlu.model import Interpreter
+
+# Load the pre-trained Rasa NLU model
+interpreter = Interpreter.load('/path/to/model')
+
+# Define a message handler to respond to user input
+@dp.message_handler()
+async def handle_message(message: types.Message):
+    # Get the user's input message text
+    message_text = message.text
+
+    # Use the Rasa NLU interpreter to extract intent and entities from the user message
+    result = interpreter.parse(message_text)
+
+    # Get the intent and entities from the result
+    intent = result['intent']['name']
+    entities = result['entities']
+
+    # Use the intent and entities to determine how to respond to the user's message
+    if intent == 'greet':
+        response_text = 'Hello! How can I assist you today?'
+    elif intent == 'search':
+        query = entities.get('query')
+        response_text = f'Searching for {query}...'
+        # Do the search and return the results
+    else:
+        response_text = 'Sorry, I didn\'t understand what you\'re looking for. Please try again.'
+
+    # Send the response message back to the user
+    await message.answer(response_text)
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+     # Register handler for the user's search query
+    @dp.message_handler(lambda message: message.text)
+    async def search_handler(message: types.Message):
+        query = message.text.strip()
+        if not query:
+            return
+
+        # Call the search_movies function and send the results back to the user
+        results = search_movies(query)
+        await message.answer(results)
+
+    # Set the handler to only respond to the user who initiated the command
+    await dp.current_state(user=message.from_user.id).set_state("🔍 search")
+    await dp.current_state(user=message.from_user.id).update_data(commands="🔍 Search")
+    await dp.bot.register_next_step_handler(message, search_handler)
+
+
+
+
+
+
+import requests
+
+def search_movies(query):
+    api_key = 'your_api_key_here' # Replace with your own API key
+    url = f'https://api.themoviedb.org/3/search/multi?api_key={api_key}&query={query}'
+    response = requests.get(url)
+    results = response.json().get('results')
+
+    if not results:
+        return 'Sorry, no results found.'
+
+    message = ''
+    for result in results:
+        media_type = result.get('media_type')
+        if media_type == 'tv':
+            message += f"{result.get('name')} ({result.get('first_air_date', 'N/A')})\n"
+        elif media_type == 'movie':
+            message += f"{result.get('title')} ({result.get('release_date', 'N/A')})\n"
+
+        message += f"Overview: {result.get('overview', 'N/A')}\n\n"
+
+    return message 

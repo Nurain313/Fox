@@ -1,7 +1,6 @@
 import requests
 import json
 import os.path
-import time
 
 API_KEY = 'aa987a7052db48e0194a06791c4e979e'
 

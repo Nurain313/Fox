@@ -13,60 +13,69 @@ client = Client(account_sid, auth_token)
 # Define the path to the upcoming.json file
 parent_dir = os.path.dirname(os.getcwd())
 movie_file_dir = os.path.join(parent_dir, 'movie_file')
-json_file = os.path.join(movie_file_dir, 'upcoming_movies.json')
-#with open(json_file_path, 'r') as f:
-    #data = json.load(f)
+tv_show_file_dir = os.path.join(parent_dir, 'tv_show_file')
+Ids_dir = os.path.join(parent_dir, 'sms_file')
 
-# Define a function to read JSON data from a file
-def read_json(json_file):
-    with open(json_file, 'r') as f:
-        data = json.load(f)
-    return data
+# JSON file paths
+movie_file =os.path.join(movie_file_dir, 'upcoming_movies.json')
+tv_show_file = os.path.join(tv_show_file_dir, 'upcoming_tv_shows.json')
 
-# Define a function to send an SMS
-def send_sms(message):
-    client.messages.create(
-        to=destination_number,
+# Text file to keep track of IDs in the JSON files
+id_file = os.path.join (Ids_dir, 'id_file.txt') 
+
+print ("sms has started........ ")
+
+# Function to send an SMS via Twilio
+def send_sms():
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        body="The Database has been updated.",
         from_=twilio_number,
-        body=message)
-
-# Read the initial JSON data
-data = read_json(json_file)
-
-# Extract the movie and TV show titles
-titles = {item['title'] for item in data}
-
-# Keep checking the JSON file every 30 seconds
-while True:
-    # Wait for 30 seconds
-    #time.sleep(5)
-    print("Sms is checking for updates...")
+        to=destination_number
+    )
+    print("SMS sent:", message.sid)
     
-    # Read the current JSON data
-    current_data = read_json(json_file)
-        
-    # Extract the current movie and TV show titles
-    current_titles = {item['title'] for item in current_data}
-    
-    # Check if the titles have changed
-    new_titles = current_titles - titles
-    if new_titles== True:
-        # Create the SMS message
-        message= f"New movie/TV show(s) added: {', '.join(new_titles)}"
-        
-        # Send the SMS message
-        send_sms(message)
-        
-        # Update the titles set
-        titles = current_titles
-    else:
-      
-        #Create the SMS message 
-        message= 'update checked, no updates found'
-        # Send the SMS message
-        send_sms(message)
-        
-        print("No updates found.")
+def send_sms_no():
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        body="No new updates found, database upto date",
+        from_=twilio_number,
+        to=destination_number
+    )
+    print("SMS sent:", message.sid)
 
-    print("sms sent...")
-    time.sleep(12 * 60 * 60)
+# Check if the ID file exists, if not create it
+if not os.path.exists(id_file):
+    with open(id_file, "w") as f:
+        f.write("")
+
+# Read the last IDs from the ID file
+with open(id_file, "r") as f:
+    last_ids = f.read().splitlines()
+
+# Read the current IDs from the movie JSON file
+with open(movie_file, "r") as f:
+    movie_data = json.load(f)
+    current_ids = [str(movie["id"]) for movie in movie_data]
+
+# Read the current IDs from the TV show JSON file
+with open(tv_show_file, "r") as f:
+    tv_show_data = json.load(f)
+    current_ids += [str(tv_show["id"]) for tv_show in tv_show_data]
+
+# Compare the current IDs to the last IDs
+if set(current_ids) != set(last_ids):
+    # Update the ID file with the current IDs
+    with open(id_file, "w") as f:
+        f.write("\n".join(current_ids))
+
+    # Send an SMS via Twilio
+    send_sms()
+else:
+  print ("No new updates found, database upto date")
+  # Send an SMS via Twilio
+  send_sms_no()
+    
+    
+print ("sms complete ")
+
